@@ -5,7 +5,7 @@ Modelado de amenazas del sitio web ficticio **EventosU** en el cual se publica s
 **Curso:** Ciberseguridad 
 **Catedrático:** Ing. Ing. Lester Monterroso
 **Universidad:** Universidad Galileo
-**Fecha de entrega:** 11/11/2026
+**Fecha de entrega:** 17/11/2026
 
 ## Integrantes
  
