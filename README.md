@@ -44,7 +44,7 @@ eventosu-threat-model/
 ```
 ## Cómo abrir el modelo
 
-Requisitos: 
+Requisitos: OWASP Threat Dragon, versión de escritorio [versión, 2.6.2], instalada desde sus releases en GitHub. Sistema operativo con el que lo probamos:Windows.
 
 
 
