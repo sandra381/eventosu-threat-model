@@ -43,6 +43,26 @@ Como el caso no define algunos detalles del diseño, se tomaron los siguientes s
 
 ## 2. DFD nivel 0 y nivel 1
 
+### Nivel 0 (contexto)
+
+En el nivel 0 se representa EventosU como un solo proceso, dentro del límite "Nube de EventosU". A la izquierda se muestran los cinco tipos de usuario que interactúan con el sistema y a la derecha los tres servicios externos que utiliza: Microsoft Entra ID, el proveedor de pagos y el servicio de correo.
+
+![DFD Nivel 0](<img/EventosU - Nivel 0 (contexto).png>)
+
+### Nivel 1
+
+En el nivel 1 se muestran por separado los componentes de EventosU: sitio web, panel de administración (`/admin`), app de puerta, API, base de datos, bucket de archivos y servicios externos.
+
+También se definieron cinco límites de confianza:
+
+- **Navegador del usuario:** contiene el sitio web y el panel `/admin`. Es un entorno que EventosU no controla completamente, por lo que no se debe confiar directamente en la información que envía.
+- **Celular de puerta:** contiene la aplicación que utiliza el personal para escanear los códigos QR y consultar su validez.
+- **Nube de EventosU:** contiene la API, encargada de procesar las solicitudes y realizar las validaciones del sistema.
+- **Red privada de datos:** contiene la base de datos y el bucket de archivos, donde se almacena la información utilizada por EventosU.
+- **Servicios de terceros:** incluye Microsoft Entra ID, el proveedor de pagos y el servicio de correo. Son servicios externos que EventosU utiliza, pero no controla directamente.
+
+![DFD Nivel 1](<img/EventosU - Nivel 1.png>)
+
 ## 3. Tabla de amenazas
 
 ## 4. Árbol de ataque
