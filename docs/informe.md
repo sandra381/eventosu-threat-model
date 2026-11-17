@@ -94,4 +94,34 @@ También se definieron cinco límites de confianza:
 
 ## 6. Trazabilidad de las 5 amenazas críticas
 
+En esta sección se detallan las cinco amenazas de mayor riesgo identificadas en la matriz y la amenaza aceptada.
+
+### Requisito, tarea y control de verificación
+
+Para las cinco amenazas seleccionadas de EventosU, se utilizaron los requisitos de OWASP ASVS 5.0 como referencia para identificar las medidas de seguridad que debería tener el sistema. Para cada amenaza se explica qué se necesita implementar y cómo se podría comprobar que funcione correctamente.
+
+| ID | Amenaza | Requisito ASVS | Tarea | Cómo se verifica |
+|----|---------|----------------|-------|------------------|
+| S-01 | Webhook falso de pago | **4.1.5:** Los avisos de pago deben llevar una firma de seguridad que permita comprobar quién los envió, ya que contienen información relacionada con operaciones sensibles. | Es necesario que la API compruebe, revisando su firma, que cada confirmación de pago realmente provenga de la pasarela. En caso de recibir una confirmación falsa, el sistema deberá rechazarla, mantener la inscripción como pendiente de pago y no generar el código QR. | **Prueba manual:** Se utiliza curl para enviar una confirmación de pago falsa, sin firma de seguridad. Después, se debe comprobar que la API rechace la confirmación, que la inscripción continúe pendiente de pago y que no se envíe el código QR al correo del usuario. |
+| T-01 | QR alterado | **9.1.1:** La firma de un token debe verificarse antes de utilizar sus datos, para comprobar que la información no haya sido modificada. | El QR debe generarse con una firma que proteja los datos de la inscripción y del evento. Cuando el personal encargado del ingreso escanee un código, la API deberá comprobar que no haya sido modificado, que corresponda al evento, que la inscripción esté pagada y que no se haya utilizado anteriormente. | **Prueba manual:** Se utiliza la aplicación de validación de entradas para escanear un QR con el número de inscripción modificado, otro que pertenezca a un evento diferente, uno de una inscripción sin pagar y otro que ya haya sido utilizado. Se debe comprobar que ninguno permita el ingreso. Además, se probará un QR válido para verificar que el sistema sí autorice la entrada. |
+| T-02 | Rol modificado dentro del JWT | **9.1.1 y 9.1.2:** El sistema debe verificar la firma de los tokens y aceptar únicamente aquellos que utilicen algoritmos de seguridad permitidos. | La API debe verificar la firma del JWT antes de utilizar la información del rol. De esta manera, si un estudiante modifica su token para cambiar su rol a administrador, el sistema deberá detectar la modificación y rechazarlo. | **SAST:** Se utiliza Semgrep para identificar posibles partes del código donde se acepten JWT sin verificar su firma. **Prueba manual:** Se modifica el rol de un token de estudiante a administrador y se intenta crear un usuario. Se debe comprobar que la API rechace la solicitud. |
+| I-01 | CSV expuesto en un bucket público | **8.2.2:** El sistema debe permitir que únicamente los usuarios autorizados puedan acceder a la información correspondiente. | El bucket debe configurarse como privado para evitar que cualquier persona descargue los archivos CSV. Cuando un organizador necesite la lista de inscritos de su evento, la API deberá comprobar que tenga permiso y generar un enlace de descarga que venza después de unos minutos. | **IaC:** Se utiliza Checkov para verificar que el bucket no permita acceso público y detener el pipeline si se detecta esa configuración. **Prueba manual:** Se intenta descargar un CSV sin autorización, solicitarlo desde la cuenta de otro organizador y utilizar un enlace vencido. En ninguno de estos casos debe permitirse la descarga. |
+| E-01 | Acceso a /admin cambiando la URL | **8.2.1:** El sistema debe comprobar que cada usuario tenga los permisos necesarios antes de permitirle utilizar funciones restringidas, como las del panel de administración. | La API debe revisar los permisos del usuario cada vez que intente realizar una acción administrativa. No es suficiente con ocultar la página `/admin`, ya que un estudiante podría intentar acceder directamente desde el navegador. | **Prueba manual:** Se inicia sesión con una cuenta de estudiante y se intenta modificar el precio de un evento desde `/admin`. Se debe comprobar que la API rechace la solicitud por falta de permisos y que el precio del evento no cambie. |
+
+### Amenaza aceptada
+
+**Amenaza aceptada:** S-03 — QR compartido por captura de pantalla
+
+**Respuesta:** Aceptar el riesgo residual.
+
+Se acepta el riesgo de que un usuario comparta o revenda su código QR, ya que en este caso cada entrada permitirá un solo ingreso. Por lo tanto, la primera persona que utilice el QR será la que podrá entrar al evento y, si alguien más intenta utilizarlo después, el sistema le indicará que el código ya fue utilizado.
+
+Se considera que el impacto de este riesgo sería limitado. Además, esto permitiría que el ingreso sea un poco más rápido, porque de lo contrario sería necesario que el personal encargado solicite un documento de identificación a cada asistente, lo que podría generar filas más largas.
+
+Para aceptar este riesgo, también es necesario que el QR esté firmado y que la API compruebe que sea válido y lo marque como utilizado en una sola operación. De esta manera, se evita que dos personas puedan ingresar con el mismo código, incluso si intentan utilizarlo al mismo tiempo. Además, la aplicación de validación de entradas deberá consultar siempre a la API y no podrá aprobar un QR por su cuenta cuando no haya conexión.
+
+Si se presentan varios casos de reventa de entradas, será necesario evaluar nuevamente el riesgo.
+
+**Responsable:** La Coordinación de eventos de la universidad será la encargada de aceptar y supervisar este riesgo, así como darle seguimiento si se presenta algún problema.
+
 ## 7. Conclusiones
