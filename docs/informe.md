@@ -132,3 +132,9 @@ Si se presentan varios casos de reventa de entradas, será necesario evaluar nue
 
 **Responsable:** La Coordinación de eventos de la universidad será la encargada de aceptar y supervisar este riesgo, así como darle seguimiento si se presenta algún problema.
 ## 7. Conclusiones
+
+Con este laboratorio se comprendió que, al realizar un análisis de amenazas, algunos riesgos no se pueden eliminar del todo. En EventosU se decidió aceptar el riesgo de que los usuarios compartan su código QR, con la condición de que cada código permita el ingreso de una sola persona. Para tomar esa decisión se evaluó el impacto en la matriz de riesgo, considerando que algunos riesgos pueden aceptarse cuando su impacto es limitado y las medidas para evitarlos pueden resultar más costosas que sus posibles consecuencias.
+
+Antes de empezar a desarrollar un sistema es necesario analizar sus amenazas, porque los aspectos de seguridad deben definirse desde el diseño para evitar problemas a futuro. En el caso de EventosU, antes de programar habría que establecer que los códigos QR llevarán firma, que la API verificará los permisos de los usuarios antes de permitir acciones restringidas y cómo se validarán las entradas cuando no haya conexión a internet.
+
+Por último, es importante proteger las confirmaciones de pago y los códigos QR. Si la API acepta esa información sin verificarla, un usuario podría obtener una entrada sin pagar o modificar un QR para intentar ingresar a otro evento. Por eso, se propone utilizar firmas de seguridad y comprobar que la información del pago y de la entrada sea válida antes de aceptarla.
