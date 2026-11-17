@@ -72,7 +72,7 @@ También se definieron cinco límites de confianza:
 | **S-03** | Flujo: Validación de QR | Spoofing | Un atacante muestra en la puerta una foto del QR de un amigo. El guardia lo escanea y el sistema no distingue si es un código real o una foto. | Bajo | Alta | Medio | Aceptar | Se acepta porque el QR es de un solo uso. Para protegernos, el QR lleva un sello digital y el sistema lo marca como usado al instante. Responsable: Coordinación de eventos. | Aceptado |
 | **T-01** | Flujo: Validación de QR | Tampering | Un atacante modifica el número de entrada dentro del QR porque este no tiene candado; por lo que podría entrar a un evento VIP pagando uno barato. | Alto | Alta | Crítico | Mitigar | Ponerle un sello digital al QR. Si alguien intenta modificarlo, el sello se rompe y el sistema lo rechaza. | En diseño |
 | **T-02** | Flujo: Peticiones Admin | Tampering | Un estudiante abre su gafete digital en el navegador y cambia su rol a admin para entrar a zonas restringidas. | Alto | Media | Alto | Mitigar | El servidor nunca debe creer lo que dice el token; debe consultar la base de datos para revisar el rol real en cada petición. | En diseño |
-| **T-03** | Flujo: Peticiones de usuario con JWT | Tampering | El atacante usa el modo desarrollador del navegador para cambiar el precio de un evento de $50 a $1 antes de pagar, obteniendo la entrada barata. | Medio | Media | Medio | Mitigar | El servidor debe ignorar el precio que manda la página web; tiene que buscar el precio real directamente en su base de datos. | En diseño |
+| **T-03** | Flujo: Peticiones de usuario con JWT | Tampering | El atacante usa el modo desarrollador del navegador para cambiar el precio de un evento de Q50.00 a Q1.00 antes de pagar, obteniendo la entrada barata. | Medio | Media | Medio | Mitigar | El servidor debe ignorar el precio que manda la página web; tiene que buscar el precio real directamente en su base de datos. | En diseño |
 | **R-01** | Flujo: Webhook de pago | Repudiation | Un estudiante que no recibió el QR dice que no pagó. Como no hay un registro histórico, la universidad no puede probar lo contrario. | Medio | Media | Medio | Mitigar | Llevar un registro de logs que guarde la fecha, la hora y los datos de cada pago que entra al sistema. | En diseño |
 | **R-02** | Proceso: App de Puerta | Repudiation | Un guardia deja pasar a gente sin escanear el QR. Luego lo niega, y como la app no guarda los ingresos manuales, no hay pruebas en su contra. | Bajo | Baja | Bajo | Aceptar | Se confía en el personal contratado. Se controla con supervisión física, cámaras de seguridad y conteo manual. | Aceptado |
 | **R-03** | Flujo: Afiche y exportación del CSV | Repudiation | Un organizador descarga el CSV de los inscritos y filtra la información. Al no haber registro de quién descargó el archivo, nadie paga las consecuencias. | Alto | Media | Alto | Mitigar | Anotar en un registro quién descargó el CSV y a qué hora. Además, ponerle una marca de agua invisible con el nombre del organizador. | En diseño |
@@ -97,9 +97,51 @@ Para entender cómo un atacante podría intentar ingresar a un evento de Eventos
 *   **Nodo Y (AND):** El atacante debe cumplir con todos los pasos de esa rama para tener éxito.
 
 **Justificación del Camino Más Barato (Rama Marcada en Rojo):**
-El camino más barato y rápido para el atacante es la rama derecha: Falsificar el Webhook de pago. Debido a que no requiere una interacción física, un dispositivo en la puerta y una cuenta de estudiante.El atacante solo necesita un computadora , descubrir la URL del webhook y enviar una petición HTTP falsa simulando ser la pasarela de pagos.Como el sistema no verifica ninguna firma de seguridad, el servidor le cree y le genera un código QR válido de inmediato.
+El camino más barato y rápido para el atacante es la rama derecha: Falsificar el Webhook de pago. Debido a que no requiere una interacción física, un dispositivo en la puerta y una cuenta de estudiante.El atacante solo necesita un computadora, descubrir la URL del webhook y enviar una petición HTTP falsa simulando ser la pasarela de pagos.Como el sistema no verifica ninguna firma de seguridad, el servidor le cree y le genera un código QR válido de inmediato.
 
-## 5. Matriz de riesgo
+## 5. Matriz de riesgo (Impacto × Probabilidad)
+
+Para priorizar las amenazas, definimos los siguientes criterios:
+
+**Criterios de Impacto:**
+*   **Alto:** La universidad pierde dinero, se filtran datos personales de los estudiantes o el sistema se cae por completo durante un evento.
+*   **Medio:** Afecta a un grupo pequeño de usuarios, genera pérdida de tiempo o daña un poco la imagen de la universidad.
+*   **Bajo:** Es un fastidio menor, no se pierde dinero ni datos, y el sistema sigue funcionando.
+
+**Criterios de Probabilidad:**
+*   **Alta:** Cualquier persona con un navegador y conocimientos básicos puede hacerlo.
+*   **Media:** Requiere un poco de conocimiento técnico, usar herramientas de desarrollador o tener una cuenta válida en el sistema.
+*   **Baja:** Requiere acceso físico al dispositivo, convencer a un empleado aprovechar un fallo de red muy específico.
+
+#### Matriz 3x3
+
+| Impacto \ Probabilidad | Alta | Media | Baja |
+| :--- | :--- | :--- | :--- |
+| **Alto** | **CRÍTICO** <br> • S-01<br>• T-01<br>• I-01  | **ALTO**<br>• T-02 <br>• R-03 <br>• D-02 <br>• E-01 <br>• E-02 | **MEDIO**<br>• E-03  |
+| **Medio** | **ALTO**<br>• D-03  | **MEDIO**<br>• S-02 <br>• T-03 <br>• R-01 <br>• I-02 <br>• D-01 | **BAJO**<br>• I-03  |
+| **Bajo** | **MEDIO**<br>• S-03  | *n/a* | **BAJO**<br>• R-02 |
+
+#### Justificación de cada calificación
+
+*   **S-01 - Riesgo crítico:** Tiene un impacto alto por la pérdida de dinero, y una probabilidad alta porque la url del webhook es fácil de encontrar y no pide contraseña.
+*   **T-01 - Riesgo crítico:** Tiene un impacto alto porque alguien entra a un evento vip sin pagar, y una probabilidad alta ya que el qr es solo texto y se puede editar fácilmente.
+*   **I-01 - Riesgo crítico:** Tiene un impacto alto debido a la filtración de datos de estudiantes, y una probabilidad alta porque es muy común que los buckets en la nube queden públicos por error.
+*   **T-02 - Riesgo alto:** Tiene un impacto alto porque el atacante obtiene control de admin, y una probabilidad media ya que requiere saber cómo modificar un token en el navegador.
+*   **R-03 - Riesgo alto:** Tiene un impacto alto por la fuga de datos personales, y una probabilidad media porque lo hace un organizador que tiene permisos legítimos para descargar.
+*   **D-02 - Riesgo alto:** Tiene un impacto alto causando caos y filas en la puerta del evento, y una probabilidad media porque requiere armar un script para saturar la api.
+*   **E-01 - Riesgo alto:** Tiene un impacto alto logrando el control total del sistema, y una probabilidad media ya que basta con cambiar la url a /admin, pero requiere tener una cuenta.
+*   **E-02 - Riesgo alto:** Tiene un impacto alto porque el atacante se vuelve administrador, y una probabilidad media ya que requiere interceptar la petición con herramientas de red.
+*   **D-03 - Riesgo alto:** Tiene un impacto medio porque bloquea cuentas de estudiantes, pero una probabilidad alta ya que los bots de fuerza bruta son gratuitos y fáciles de usar.
+*   **S-02 - Riesgo medio:** Tiene un impacto medio por la estafa a algunos estudiantes, y una probabilidad media porque el atacante debe crear un evento falso que sea creíble.
+*   **T-03 - Riesgo medio:** Tiene un impacto medio por la pérdida de dinero en una entrada, y una probabilidad media ya que solo requiere abrir las herramientas de desarrollo del navegador.
+*   **R-01 - Riesgo medio:** Tiene un impacto medio porque la universidad pierde dinero en reembolsos, y una probabilidad media porque ocurre si hay fallos de red con el correo.
+*   **I-02 - Riesgo medio:** Tiene un impacto medio porque le da pistas al atacante, y una probabilidad media ya que el atacante debe provocar un error controlado en la api.
+*   **D-01 - Riesgo medio:** Tiene un impacto medio dejando a un usuario sin correo, y una probabilidad media porque es fácil automatizar los clics en el botón de recuperar contraseña.
+*   **S-03 - Riesgo medio:** Tiene un impacto bajo porque solo entra una persona extra, pero la probabilidad es alta ya que es súper fácil tomarle una foto al qr de un amigo.
+*   **E-03 - Riesgo medio:** Tiene un impacto alto por el control total del sistema, pero una probabilidad baja ya que requiere que el programador cometa un error muy grave de configuración.
+*   **I-03 - Riesgo bajo:** Tiene un impacto medio porque se expone un poco de información, pero la probabilidad es baja ya que requiere que el guardia pierda su celular.
+*   **R-02 - Riesgo bajo:** Tiene un impacto bajo porque entran pocas personas sin registro, y una probabilidad baja porque se necesita que el guardia sea deshonesto.
+
 
 ## 6. Trazabilidad de las 5 amenazas críticas
 En esta sección se detallan las cinco amenazas de mayor riesgo identificadas en la matriz y la amenaza aceptada.
